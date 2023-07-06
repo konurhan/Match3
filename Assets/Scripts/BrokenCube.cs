@@ -8,7 +8,7 @@ public class BrokenCube : MonoBehaviour
     //move each piecie on a different trajectory
     //at the and return them to their initial position
     [SerializeField] private List<GameObject> children;//cache in the start method
-    [SerializeField] private List<Vector3> initialPositions;//cache in the start method
+    [SerializeField] private List<Vector3> initialLocalPositions;//cache in the start method, initial local positions of cube parts
     [SerializeField] private List<Vector3> initialEulerAngles;//cache in the start method
     [SerializeField] private float gravity = 12.81f;
     [SerializeField] private float passedTime = 0f;
@@ -17,9 +17,10 @@ public class BrokenCube : MonoBehaviour
     [SerializeField] private float horizontalVelocity = 2f;
     [SerializeField] private float trajectoryAngle = 60f;
     [SerializeField] private float explosionRegionAngle = 120f;//centered at 270 degrees around y axis
+    [SerializeField] private float angularVelocity = 80f;
     [SerializeField] private List<Vector3> normalizedDirections = new List<Vector3>();//horizontal movement directions of cube fragments. Will depend on the explosionRegionAngle
 
-    void Start()
+    void Awake()
     {
         for (int i = 0; i < gameObject.transform.childCount; i++)
         {
@@ -27,7 +28,7 @@ public class BrokenCube : MonoBehaviour
         }
         for (int i = 0; i < children.Count; i++)
         {
-            initialPositions.Add(children[i].transform.position);
+            initialLocalPositions.Add(children[i].transform.localPosition);
             initialEulerAngles.Add(children[i].transform.eulerAngles);
         }
         CalculateDirections();
@@ -44,27 +45,11 @@ public class BrokenCube : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    private void OnEnable()
+    public void Explode()
     {
         passedTime = 0f;
         StartCoroutine(ExplodeBox());
     }
-
-    /*private void OnDisable()//return pieces to the original transforms and set the brokencube back to the pool
-    {
-        for (int i = 0; i < children.Count; i++)
-        {
-            children[i].transform.position = initialPositions[i];
-            children[i].transform.eulerAngles = initialEulerAngles[i];
-        }
-        ObjectPooling.Instance.SetPooledBrokenCube(gameObject);
-    }*/
 
     IEnumerator ExplodeBox()
     {
@@ -72,17 +57,23 @@ public class BrokenCube : MonoBehaviour
         {
             for (int i = 0; i < children.Count; i++)
             {
-                children[i].transform.position += (horizontalVelocity * normalizedDirections[i] + (verticalVelocity - gravity * passedTime)*Vector3.up) * Time.deltaTime;
+                children[i].transform.localPosition += (horizontalVelocity * normalizedDirections[i] + (verticalVelocity - gravity * passedTime)*Vector3.up) * Time.deltaTime;
+            }
+            for (int i = 0; i < children.Count; i++)
+            {
+                float x = - angularVelocity * Time.deltaTime;
+                float z = angularVelocity * (children.Count/2f -i) * Time.deltaTime / 10;
+                children[i].transform.Rotate(x, 0f, z, Space.Self);
             }
             passedTime += Time.deltaTime;
             yield return null;
         }
         for (int i = 0; i < children.Count; i++)
         {
-            children[i].transform.position = initialPositions[i];
+            children[i].transform.localPosition = initialLocalPositions[i];
             children[i].transform.eulerAngles = initialEulerAngles[i];
         }
         ObjectPooling.Instance.SetPooledBrokenCube(gameObject);
-        Debug.Log("ExplodeBox coroutine has finished.");
+        Debug.Log("ExplodeBox coroutine has finished!!!");
     }
 }

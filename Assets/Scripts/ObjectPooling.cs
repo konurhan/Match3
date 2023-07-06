@@ -77,8 +77,8 @@ public class ObjectPooling : MonoBehaviour
             pooledBrokenCubes.Add(color, new List<GameObject> { brokenCube });
         }
 
-        cube.transform.SetParent(LevelManager.Instance.CubesParent, true);
-        brokenCube.transform.SetParent(LevelManager.Instance.BrokenCubesParent, true);
+        cube.transform.SetParent(LevelManager.Instance.CubesParent/*, true*/);
+        brokenCube.transform.SetParent(LevelManager.Instance.BrokenCubesParent/*, true*/);
     }
 
     public GameObject GetPooledCube(string color)
@@ -107,7 +107,7 @@ public class ObjectPooling : MonoBehaviour
         Debug.Log("SetPooledCube is called");
     }
 
-    public GameObject GetPooledBrokenCube(string color)
+    public GameObject GetPooledBrokenCube(string color, Vector3 worldPosition)
     {
         GameObject cube = null;
         for (int i = 0; i < pooledBrokenCubes[color].Count; i++)
@@ -123,6 +123,13 @@ public class ObjectPooling : MonoBehaviour
             InstantiateAndAddCube(color);
             cube = pooledBrokenCubes[color][pooledBrokenCubes[color].Count - 1];
         }
+
+        cube.transform.position = worldPosition;
+        /*if (cube.name.Contains("Red"))
+        {
+            Debug.Log("BrokenCube-Red position is set to " + worldPosition);
+        }*/
+        
         cube.SetActive(true);
         return cube;
     }

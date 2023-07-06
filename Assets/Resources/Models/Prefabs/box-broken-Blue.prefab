@@ -550,15 +550,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   children: []
-  initialPositions: []
+  initialLocalPositions: []
   initialEulerAngles: []
   gravity: 12
   passedTime: 0
   targetTime: 1.5
   verticalVelocity: 10
-  horizontalVelocity: 2
+  horizontalVelocity: 3
   trajectoryAngle: 60
   explosionRegionAngle: 120
+  angularVelocity: 90
   normalizedDirections: []
 --- !u!1 &8651152414071529670
 GameObject:
