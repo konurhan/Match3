@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -16,10 +17,7 @@ public class ObjectPooling : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-    }
-    void Start()
-    {
-        colors = new List<string> { 
+        colors = new List<string> {
             "Yellow",
             "Red",
             "Green",
@@ -29,6 +27,10 @@ public class ObjectPooling : MonoBehaviour
         pooledBrokenCubes = new Dictionary<string, List<GameObject>>();
         //Invoke("PoolCubes", 2f);
         PoolCubes();
+    }
+    void Start()
+    {
+        
     }
 
     // Update is called once per frame
@@ -54,7 +56,7 @@ public class ObjectPooling : MonoBehaviour
         GameObject brokenCube;
 
         cube = Instantiate(Resources.Load("Models/Prefabs/box-" + color)) as GameObject;
-        brokenCube = Instantiate(Resources.Load("Models/Prefabs/box-broken-" + color)) as GameObject;
+        brokenCube = Instantiate(Resources.Load("Models/Prefabs/broken-pieces-" + color)) as GameObject;
 
         cube.SetActive(false);
         brokenCube.SetActive(false);
@@ -84,13 +86,18 @@ public class ObjectPooling : MonoBehaviour
     public GameObject GetPooledCube(string color)
     {
         GameObject cube = null;
-        for (int i = 0; i< pooledCubes[color].Count; i++)
+        /*for (int i = 0; i< pooledCubes[color].Count; i++)
         {
             if (!pooledCubes[color][i].activeInHierarchy)
             {
                 cube = pooledCubes[color][i];
                 break;
             }
+        }*/
+        if (pooledCubes[color].Count!=0)
+        {
+            cube = pooledCubes[color][0];
+            pooledCubes[color].RemoveAt(0);
         }
         if (cube == null)
         {
@@ -103,20 +110,26 @@ public class ObjectPooling : MonoBehaviour
 
     public void SetPooledCube(GameObject usedCube)
     {
+        string color = usedCube.GetComponent<MeshRenderer>().material.ToString().Replace(" (Instance) (UnityEngine.Material)", "");
+        pooledCubes[color].Add(usedCube);
         usedCube.SetActive(false);
-        Debug.Log("SetPooledCube is called");
     }
 
     public GameObject GetPooledBrokenCube(string color, Vector3 worldPosition)
     {
         GameObject cube = null;
-        for (int i = 0; i < pooledBrokenCubes[color].Count; i++)
+        /*for (int i = 0; i < pooledBrokenCubes[color].Count; i++)
         {
             if (!pooledBrokenCubes[color][i].activeInHierarchy)
             {
                 cube = pooledBrokenCubes[color][i];
                 break;
             }
+        }*/
+        if (pooledBrokenCubes[color].Count != 0)
+        {
+            cube = pooledBrokenCubes[color][0];
+            pooledBrokenCubes[color].RemoveAt(0);
         }
         if (cube == null)
         {
@@ -125,17 +138,15 @@ public class ObjectPooling : MonoBehaviour
         }
 
         cube.transform.position = worldPosition;
-        /*if (cube.name.Contains("Red"))
-        {
-            Debug.Log("BrokenCube-Red position is set to " + worldPosition);
-        }*/
-        
+        cube.transform.position += Vector3.back;
         cube.SetActive(true);
         return cube;
     }
 
     public void SetPooledBrokenCube(GameObject usedCube)
     {
+        string color = usedCube.GetComponent<BrokenCube>().color;
+        pooledBrokenCubes[color].Add(usedCube);
         usedCube.SetActive(false);
     }
 }

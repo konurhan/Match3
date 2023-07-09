@@ -23,7 +23,7 @@ public class SwipeManager : MonoBehaviour
         LevelManager.setupEvent += SetSize;
         //cellSize = grid.cellSize;
     }
-    void Update()
+    void Update()//move this code
     {
         if(Input.touchCount >0 && Input.GetTouch(0).phase == TouchPhase.Began)
         {

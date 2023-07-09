@@ -552,6 +552,7 @@ MonoBehaviour:
   children: []
   initialLocalPositions: []
   initialEulerAngles: []
+  particleCount: 7
   gravity: 12
   passedTime: 0
   targetTime: 1.5

@@ -28,7 +28,7 @@ public class MenuManager : MonoBehaviour
         InitialLevelsPopupSetup();
     }
 
-    private void Update()
+    private void Start()
     {
         int lastLevel = PlayerPrefs.GetInt("last_played_level");
         int maxScore = PlayerPrefs.GetInt("max_score_has_changed_level_" + lastLevel.ToString());

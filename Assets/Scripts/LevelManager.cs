@@ -15,6 +15,7 @@ public class LevelManager: MonoBehaviour
     public Transform canvasLevelTMP;
     public Transform canvasMoveCountTMP;
     public Transform canvasScoreTMP;
+    public Transform canvasFPSTMP;
 
     public Transform CubesParent;
     public Transform BrokenCubesParent;
@@ -22,7 +23,7 @@ public class LevelManager: MonoBehaviour
     public bool levelInfoIsFetched = false;
 
     public delegate void Setup();
-    public static Setup setupEvent;
+    public static event Setup setupEvent;
 
     private void Awake()
     {

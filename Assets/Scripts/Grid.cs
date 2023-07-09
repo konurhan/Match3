@@ -20,7 +20,9 @@ public class Grid : MonoBehaviour
     public int maxScore;
     public List<int> popAmountByColumn;
     public int[,] explosionMatrix;//pop the cubes in the places of 1s.
+    [SerializeField] private List<float> last200Frames;
 
+    public bool isCheckingForMatchesRecursively = false;
     public bool setupCompleted = false;
 
     private void Awake()
@@ -28,6 +30,7 @@ public class Grid : MonoBehaviour
         cellSize = 2f;
         Debug.Log("Cell size is: "+cellSize.ToString());
         score = 0;
+        LevelManager.setupEvent += SetupGrid;
     }
 
     void Start()
@@ -35,13 +38,33 @@ public class Grid : MonoBehaviour
         
     }
 
-    void Update()
+    void Update()//move this code
     {
-        if(LevelManager.Instance.levelInfoIsFetched)
+        /*if(LevelManager.Instance.levelInfoIsFetched)
         {
             if (setupCompleted) return;
             SetupGrid();
+        }*/
+        CalculateFPS();
+    }
+
+    public void CalculateFPS()
+    {
+        if (last200Frames.Count < 200)
+        {
+            last200Frames.Add(Time.deltaTime);
+            return;
         }
+
+        last200Frames.Add(Time.deltaTime);
+        last200Frames.RemoveAt(0);
+
+        float totalTime = 0f;
+        for (int i = 0; i < 200; i++)
+        {
+            totalTime += last200Frames[i];
+        }
+        LevelManager.Instance.canvasFPSTMP.GetComponent<TextMeshProUGUI>().text = "FPS: " + ((int)(200 / totalTime)).ToString();
     }
 
     public void SetupGrid()
@@ -124,6 +147,7 @@ public class Grid : MonoBehaviour
         GameObject item2 = cells[cellIndex2.y, cellIndex2.x];
         
         if(item1.GetComponent<MeshRenderer>().material.name == item2.GetComponent<MeshRenderer>().material.name) return;//same colored cubes cannot be swaped.
+        if (isCheckingForMatchesRecursively) return;
 
         moveCount--;
         LevelManager.Instance.canvasMoveCountTMP.GetComponent<TextMeshProUGUI>().text = "Moves: " + moveCount.ToString();
@@ -138,42 +162,26 @@ public class Grid : MonoBehaviour
         cells[cellIndex2.y, cellIndex2.x] = item1;
 
         CheckForMatches();
-        
+    }
 
+    public void CheckAndStop()
+    {
         if (ShouldStop())
         {
-            if(score > PlayerPrefs.GetInt("max_score_level_" + levelNumber.ToString()))
+            if (score > PlayerPrefs.GetInt("max_score_level_" + levelNumber.ToString()))
             {
                 PlayerPrefs.SetInt("max_score_level_" + levelNumber.ToString(), score);
                 PlayerPrefs.SetInt("max_score_has_changed_level_" + levelNumber.ToString(), score);
                 PlayerPrefs.Save();
             }
-            
             SceneManager.LoadScene(0);//loading menu scene
         }
     }
 
-    public void CheckForMatches(/*int columnIndex1 ,int rowIndex1, int columnIndex2, int rowIndex2*/)
+    public void CheckForMatches()//checks all columns and rows for possible matches and marks them on a matrix
     {
-        //old code
-        /*bool isHorizontalSwap = true;
-        //start by checking for possible matches on the destination index.
-        if(columnIndex1 == columnIndex2) isHorizontalSwap=false;
-
-        if (isHorizontalSwap)//check for only 1 row and 2 columns
-        {
-            CheckRowForMatches(rowIndex1);
-            CheckColumnForMatches(columnIndex2);//first we check the column we landed on
-            CheckColumnForMatches(columnIndex1);
-        }
-        else//check for only 1 column and 2 rows
-        {
-            CheckColumnForMatches(columnIndex1);
-            CheckRowForMatches(rowIndex2);
-            CheckRowForMatches(rowIndex1);
-        }*/
-
-        //new code: checks all columns and rows for possible matches and marks them on a matrix
+        isCheckingForMatchesRecursively = true;
+        
         bool foundAMatch = false;
         for (int i = 0; i < height; i++)
         {
@@ -187,14 +195,18 @@ public class Grid : MonoBehaviour
         if (foundAMatch)
         {
             PopCubesOnMatrix();
-            StartCoroutine(DelayNextMatchCheck()); 
-            //CheckForMatches();
+            StartCoroutine(DelayNextMatchCheck());
+        }
+        else
+        {
+            isCheckingForMatchesRecursively = false;//now the player is allowed to swap again
+            CheckAndStop();
         }
     }
 
     IEnumerator DelayNextMatchCheck()
     {
-        yield return new WaitForSeconds(0.9f);
+        yield return new WaitForSeconds(1.2f);
         CheckForMatches();
     }
 
@@ -210,7 +222,6 @@ public class Grid : MonoBehaviour
             {
                 if (consecutiveCount >= 3)
                 {
-                    //PopRowCubes(rowIndex, i - consecutiveCount, consecutiveCount);
                     MarkRowCubes(rowIndex, i - consecutiveCount, consecutiveCount);
                     foundAMatch = true;
                 }
@@ -230,7 +241,6 @@ public class Grid : MonoBehaviour
             {
                 if(consecutiveCount >= 3)
                 {
-                    //PopRowCubes(rowIndex, i - consecutiveCount, consecutiveCount);
                     MarkRowCubes(rowIndex, i - consecutiveCount, consecutiveCount);
                     foundAMatch = true;
                 }
@@ -247,7 +257,6 @@ public class Grid : MonoBehaviour
             {
                 if (consecutiveCount >= 3)
                 {
-                    //PopRowCubes(rowIndex, i - consecutiveCount + 1, consecutiveCount);
                     MarkRowCubes(rowIndex, i - consecutiveCount + 1, consecutiveCount);
                     foundAMatch = true;
                 }
@@ -256,8 +265,7 @@ public class Grid : MonoBehaviour
         return foundAMatch;
     }
 
-    //this method used to be called for only the columns effected by the movement at first hand
-    public bool CheckColumnForMatches(int columnIndex)//call for all columns each time
+    public bool CheckColumnForMatches(int columnIndex)//call for all columns after each swap
     {
         bool foundAMatch = false;
         int consecutiveCount = 0;
@@ -268,7 +276,6 @@ public class Grid : MonoBehaviour
             {
                 if (consecutiveCount >= 3)
                 {
-                    //PopColumnCubes(columnIndex, i - consecutiveCount, consecutiveCount);
                     MarkColumnCubes(columnIndex, i - consecutiveCount, consecutiveCount);
                     foundAMatch = true;
                 }
@@ -289,7 +296,6 @@ public class Grid : MonoBehaviour
             {
                 if (consecutiveCount >= 3)
                 {
-                    //PopColumnCubes(columnIndex, i - consecutiveCount, consecutiveCount);
                     MarkColumnCubes(columnIndex, i - consecutiveCount, consecutiveCount);
                     foundAMatch = true;
                 }
@@ -306,7 +312,6 @@ public class Grid : MonoBehaviour
             {
                 if (consecutiveCount >= 3)
                 {
-                    //PopColumnCubes(columnIndex, i - consecutiveCount + 1, consecutiveCount);
                     MarkColumnCubes(columnIndex, i - consecutiveCount + 1, consecutiveCount);
                     foundAMatch = true;
                 }
@@ -326,28 +331,14 @@ public class Grid : MonoBehaviour
                 ObjectPooling.Instance.SetPooledCube(cells[i, j]);
                 cells[i, j] = null;
                 GameObject brokenCube = ObjectPooling.Instance.GetPooledBrokenCube(color, cellWorldPositions[i,j]);
-                //brokenCube.transform.position = cellWorldPositions[i, j];
                 brokenCube.GetComponent<BrokenCube>().Explode();
+                score++;
+                LevelManager.Instance.canvasScoreTMP.GetComponent<TextMeshProUGUI>().text = "Score: " + score.ToString();
             }
         }
         BringDownCubesOnTop();
         ResetExpMatrix();
     }
-
-    /*public void PopRowCubes(int rowIndex,int startColumnIndex, int size)//play cube explotion animation and set cubes back to the pool
-    {
-        for (int i = 0; i < size; i++)
-        {
-            string color = cells[rowIndex, startColumnIndex + i].GetComponent<MeshRenderer>().material.ToString();
-            color = color.Replace(" (Instance) (UnityEngine.Material)", "");
-            Debug.Log("coordinate of cube to be set is, [" + rowIndex + ", " + startColumnIndex + i + "]");
-            ObjectPooling.Instance.SetPooledCube(cells[rowIndex, startColumnIndex + i]);
-            cells[rowIndex, startColumnIndex + i] = null;
-            GameObject brokenCube = ObjectPooling.Instance.GetPooledBrokenCube(color);
-            brokenCube.transform.position = cellWorldPositions[rowIndex, startColumnIndex + i];
-            Debug.Log("brokenCube: color is " + color);
-        }
-    }*/
 
     public void MarkRowCubes(int rowIndex, int startColumnIndex, int size)
     {
@@ -357,21 +348,6 @@ public class Grid : MonoBehaviour
         }
     }
 
-    /*public void PopColumnCubes(int columnIndex, int startRowIndex, int size)//play cube explotion animation and set cubes back to the pool
-    {
-        for (int i = 0; i < size; i++)
-        {
-            string color = cells[startRowIndex + i, columnIndex].GetComponent<MeshRenderer>().material.ToString();
-            color = color.Replace(" (Instance) (UnityEngine.Material)", "");
-            Debug.Log("coordinate of cube to be set is, [" + startRowIndex + i + ", " + columnIndex + "]");
-            ObjectPooling.Instance.SetPooledCube(cells[startRowIndex + i, columnIndex]);
-            cells[startRowIndex + i, columnIndex] = null;
-            GameObject brokenCube = ObjectPooling.Instance.GetPooledBrokenCube(color);
-            brokenCube.transform.position = cellWorldPositions[startRowIndex + i, columnIndex];
-            Debug.Log("brokenCube: color is " + color);
-        }
-    }*/
-
     public void MarkColumnCubes(int columnIndex, int startRowIndex, int size)
     {
         for (int i = 0; i < size; i++)
@@ -380,22 +356,22 @@ public class Grid : MonoBehaviour
         }
     }
 
-    public void BringDownCubesOnTop()//goes through each column, finds and caches remainibg boxes, moves them to bottom and fills top with new boxes
+    public void BringDownCubesOnTop()//goes through each column, finds and caches remainibg cubes, moves them to bottom and fills the top with new cubes
     {
         List<int> remainingBoxIndices = new List<int>();
         for (int i = 0; i < width; i++)//for all columns
         {
-            for (int j = 0; j < height; j++)//find remaining boxes
+            for (int j = 0; j < height; j++)//find remaining cubes
             {
                 if (cells[j, i] != null) remainingBoxIndices.Add(j);
             }
             int size = remainingBoxIndices.Count;
-            for(int k=0; k < size; k++)//for all remaining boxes
+            for(int k=0; k < size; k++)//for all remaining cubes
             {
                 if (k != remainingBoxIndices[k])
                 {
                     GameObject cubeToMove = cells[remainingBoxIndices[k], i];
-                    cubeToMove.transform.DOMove(cellWorldPositions[k,i], 0.4f);
+                    cubeToMove.transform.DOMove(cellWorldPositions[k,i], 0.6f);
                     cells[k, i] = cubeToMove;
                     cells[remainingBoxIndices[k], i] = null;
                 }
@@ -405,7 +381,7 @@ public class Grid : MonoBehaviour
             {
                 GameObject newCube = ObjectPooling.Instance.GetPooledCube(GetRandomColor());
                 newCube.transform.position = cellWorldPositions[height-1, i] + new Vector3(0, cellSize * (l+1), 0);//put the new cubes above the board
-                newCube.transform.DOMove(cellWorldPositions[size+l, i], 0.4f);
+                newCube.transform.DOMove(cellWorldPositions[size+l, i], 0.6f);
                 cells[size + l, i] = newCube;
             }
             remainingBoxIndices.Clear();
@@ -455,5 +431,4 @@ public class Grid : MonoBehaviour
         return color;
     }
 
-    
 }

@@ -20,6 +20,11 @@ public class DownloadManager : MonoBehaviour
         }
 
         DontDestroyOnLoad(this.gameObject);
+#if UNITY_EDITOR
+        Debug.unityLogger.logEnabled = true;
+#else
+        Debug.unityLogger.logEnabled = false;
+#endif
     }
 
     private void Start()
@@ -27,19 +32,19 @@ public class DownloadManager : MonoBehaviour
         SaveToPersistentPath();
     }
 
-    private void Update()
+    private void Update()//move this code
     {
-
+        if (downloaded)
+        {
+            Debug.Log("Already downloaded remaining levels");
+            return;
+        }
         if (Application.internetReachability == NetworkReachability.NotReachable) 
         {
             Debug.Log("No internet connection, couldn't download remaining levels");
             return;
         } 
-        if(downloaded)
-        {
-            Debug.Log("Already downloaded remaining levels");
-            return;
-        }
+        
         DownloadRemainingLevels();
         downloaded= true;
     }
