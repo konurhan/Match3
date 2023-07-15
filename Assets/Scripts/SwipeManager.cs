@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class SwipeManager : MonoBehaviour
@@ -7,8 +5,7 @@ public class SwipeManager : MonoBehaviour
     public static SwipeManager Instance;
     public Vector2 startTouchPosition;
     public Vector2 endTouchPosition;
-    public Grid grid;
-    // Update is called once per frame
+    public GameObject grid;
     public int width, height;
     public float cellSize;
 
@@ -21,9 +18,8 @@ public class SwipeManager : MonoBehaviour
     private void Start()
     {
         LevelManager.setupEvent += SetSize;
-        //cellSize = grid.cellSize;
     }
-    void Update()//move this code
+    void Update()
     {
         if(Input.touchCount >0 && Input.GetTouch(0).phase == TouchPhase.Began)
         {
@@ -33,13 +29,8 @@ public class SwipeManager : MonoBehaviour
             Debug.Log("touch position is: " + TouchToWorldPosition(startTouchPosition));
         }
 
-        //if touch started from outside of the grid
+        //check if touch started from outside of the grid
         Vector2 startTouchPositionWorld = TouchToWorldPosition(startTouchPosition);
-
-
-        //following condition checks are extremly inefficient
-
-        //check if these conditions match with true positions on the grid!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         if (startTouchPositionWorld.x < grid.transform.position.x - width / 2f * cellSize) return;
         if (startTouchPositionWorld.x > grid.transform.position.x + width / 2f * cellSize) return;
         if (startTouchPositionWorld.y < grid.transform.position.y - height / 2f * cellSize) return;
@@ -63,12 +54,12 @@ public class SwipeManager : MonoBehaviour
                 if (endTouchPosition.y - startTouchPosition.y < 0 && cellIndexs.y-1>=0)
                 {
                     Debug.Log("swap top to bottom");
-                    grid.SwapTwoCells(cellIndexs, new Vector2Int(cellIndexs.x, cellIndexs.y-1));
+                    grid.GetComponent<Grid>().SwapTwoCells(cellIndexs, new Vector2Int(cellIndexs.x, cellIndexs.y-1));
                 }
                 else if (endTouchPosition.y - startTouchPosition.y > 0 && cellIndexs.y+1 < height)
                 {
                     Debug.Log("swap bottom to top");
-                    grid.SwapTwoCells(cellIndexs, new Vector2Int(cellIndexs.x, cellIndexs.y+1));
+                    grid.GetComponent<Grid>().SwapTwoCells(cellIndexs, new Vector2Int(cellIndexs.x, cellIndexs.y+1));
                 }
             }
             else//horizontal swap
@@ -80,12 +71,12 @@ public class SwipeManager : MonoBehaviour
                 if (endTouchPosition.x - startTouchPosition.x < 0 && cellIndexs.x-1 >= 0)
                 {
                     Debug.Log("swap right to left");
-                    grid.SwapTwoCells(cellIndexs, new Vector2Int(cellIndexs.x-1, cellIndexs.y));
+                    grid.GetComponent<Grid>().SwapTwoCells(cellIndexs, new Vector2Int(cellIndexs.x-1, cellIndexs.y));
                 }
                 else if (endTouchPosition.x - startTouchPosition.x > 0 && cellIndexs.x+1 < width)
                 {
                     Debug.Log("swap left to right");
-                    grid.SwapTwoCells(cellIndexs, new Vector2Int(cellIndexs.x+1, cellIndexs.y));
+                    grid.GetComponent<Grid>().SwapTwoCells(cellIndexs, new Vector2Int(cellIndexs.x+1, cellIndexs.y));
                 }
             }
         }

@@ -1,13 +1,8 @@
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using TMPro;
-using Unity.VisualScripting;
-using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using UnityEngine.UIElements;
 
 public class MenuManager : MonoBehaviour
 {
@@ -48,6 +43,7 @@ public class MenuManager : MonoBehaviour
         //changing the high score text
         CelebrationCanvas.GetChild(3).gameObject.GetComponent<TextMeshProUGUI>().text = maxScore.ToString();
         LevelsPopup.gameObject.SetActive(false);
+        MenuButtons.gameObject.SetActive(false);
 
         CelebrationParticles.gameObject.SetActive(true);
         CelebrationCanvas.gameObject.SetActive(true);
@@ -57,7 +53,7 @@ public class MenuManager : MonoBehaviour
         CelebrationCanvas.gameObject.SetActive(false);
         CelebrationParticles.gameObject.SetActive(false);
 
-        MenuButtons.gameObject.SetActive(false);
+        
         LevelsPopup.gameObject.SetActive(true);
     }
 
@@ -103,7 +99,7 @@ public class MenuManager : MonoBehaviour
         }
         Debug.Log("Trying to load unlocked level: "+level.ToString());
         MenuLevelManager.Instance.SetPalyerPrefsForLevel(level);
-        SceneManager.LoadScene(1);//loading the GameScene
+        SceneManager.LoadScene("GameScene");//loading the GameScene
     }
     
     #endregion
@@ -116,7 +112,8 @@ public class MenuManager : MonoBehaviour
         levelButtons.GetChild(lastPlayedLevel - 1).GetChild(1).GetComponent<TextMeshProUGUI>().text
             = "Level " + lastPlayedLevel.ToString() + " - " + PlayerPrefs.GetInt("move_count_" + lastPlayedLevel.ToString()) + " Moves";
         levelButtons.GetChild(lastPlayedLevel - 1).GetChild(2).GetComponent<TextMeshProUGUI>().text = "Highest Score: "+ maxScore.ToString();
-        levelButtons.GetChild(lastUnlockedLevel - 1).GetChild(0).GetComponent<UnityEngine.UI.Image>().sprite = Resources.Load<Sprite>("Sprites/play");
+        levelButtons.GetChild(lastUnlockedLevel - 1).GetChild(0).GetComponent<UnityEngine.UI.Image>().color = new Color32(104, 254, 186, 255);
+        levelButtons.GetChild(lastUnlockedLevel - 1).GetChild(0).GetChild(0).GetComponent<TextMeshProUGUI>().text = "PLAY";
     }
 
     public void InitialLevelsPopupSetup()
@@ -132,13 +129,15 @@ public class MenuManager : MonoBehaviour
                     = "Level " + (i+1).ToString() + " - " + PlayerPrefs.GetInt("move_count_" + (i + 1).ToString()) + " Moves";
                 levelButtons.GetChild(i).GetChild(2).GetComponent<TextMeshProUGUI>().text = "Highest Score: " +
                     PlayerPrefs.GetInt("max_score_level_" + (i + 1).ToString()).ToString();
-                levelButtons.GetChild(i).GetChild(0).GetComponent<UnityEngine.UI.Image>().sprite = Resources.Load<Sprite>("Sprites/locked");
+                levelButtons.GetChild(i).GetChild(0).GetComponent<UnityEngine.UI.Image>().color = new Color32(159, 1, 2, 255);
+                levelButtons.GetChild(i).GetChild(0).GetChild(0).GetComponent<TextMeshProUGUI>().text = "----";
             }
             else
             {
                 levelButtons.GetChild(i).GetChild(1).GetComponent<TextMeshProUGUI>().text = "Level " + (i + 1).ToString()+" is Unknown";
                 levelButtons.GetChild(i).GetChild(2).GetComponent<TextMeshProUGUI>().text = "Highest Score: Unknown";
-                levelButtons.GetChild(i).GetChild(0).GetComponent<UnityEngine.UI.Image>().sprite = Resources.Load<Sprite>("Sprites/locked");
+                levelButtons.GetChild(i).GetChild(0).GetComponent<UnityEngine.UI.Image>().color = new Color32(159, 1, 2, 255);
+                levelButtons.GetChild(i).GetChild(0).GetChild(0).GetComponent<TextMeshProUGUI>().text = "----";
             }
         }
         for(int i=0; i<lastUnlocked;i++)//no need to check for existence of the level file
@@ -147,7 +146,8 @@ public class MenuManager : MonoBehaviour
                 = "Level " + (i + 1).ToString() + " - " + PlayerPrefs.GetInt("move_count_" + (i + 1).ToString()) + " Moves";
             levelButtons.GetChild(i).GetChild(2).GetComponent<TextMeshProUGUI>().text = "Highest Score: " +
                 PlayerPrefs.GetInt("max_score_level_" + (i + 1).ToString()).ToString();
-            levelButtons.GetChild(i).GetChild(0).GetComponent<UnityEngine.UI.Image>().sprite = Resources.Load<Sprite>("Sprites/play");
+            levelButtons.GetChild(i).GetChild(0).GetComponent<UnityEngine.UI.Image>().color = new Color32(104, 254, 186, 255);
+            levelButtons.GetChild(i).GetChild(0).GetChild(0).GetComponent<TextMeshProUGUI>().text = "PLAY";
         }
     }
 
@@ -156,5 +156,6 @@ public class MenuManager : MonoBehaviour
         PlayerPrefs.DeleteAll();
         PlayerPrefs.SetInt("last_unlocked_level", 3);
         PlayerPrefs.Save();
+        InitialLevelsPopupSetup();
     }
 }

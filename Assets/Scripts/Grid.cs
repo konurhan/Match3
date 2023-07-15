@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
 using DG.Tweening;
 using UnityEngine.SceneManagement;
 using TMPro;
@@ -20,7 +19,7 @@ public class Grid : MonoBehaviour
     public int maxScore;
     public List<int> popAmountByColumn;
     public int[,] explosionMatrix;//pop the cubes in the places of 1s.
-    [SerializeField] private List<float> last200Frames;
+    [SerializeField] private List<float> last50Frames;
 
     public bool isCheckingForMatchesRecursively = false;
     public bool setupCompleted = false;
@@ -38,33 +37,28 @@ public class Grid : MonoBehaviour
         
     }
 
-    void Update()//move this code
+    void Update()
     {
-        /*if(LevelManager.Instance.levelInfoIsFetched)
-        {
-            if (setupCompleted) return;
-            SetupGrid();
-        }*/
         CalculateFPS();
     }
 
     public void CalculateFPS()
     {
-        if (last200Frames.Count < 200)
+        if (last50Frames.Count < 50)
         {
-            last200Frames.Add(Time.deltaTime);
+            last50Frames.Add(Time.deltaTime);
             return;
         }
 
-        last200Frames.Add(Time.deltaTime);
-        last200Frames.RemoveAt(0);
+        last50Frames.Add(Time.deltaTime);
+        last50Frames.RemoveAt(0);
 
         float totalTime = 0f;
-        for (int i = 0; i < 200; i++)
+        for (int i = 0; i < 50; i++)
         {
-            totalTime += last200Frames[i];
+            totalTime += last50Frames[i];
         }
-        LevelManager.Instance.canvasFPSTMP.GetComponent<TextMeshProUGUI>().text = "FPS: " + ((int)(200 / totalTime)).ToString();
+        LevelManager.Instance.canvasFPSTMP.GetComponent<TextMeshProUGUI>().text = "FPS: " + ((int)(50 / totalTime)).ToString();
     }
 
     public void SetupGrid()
@@ -88,7 +82,7 @@ public class Grid : MonoBehaviour
         InstantiateCells();
     }
 
-    public void ResetExpMatrix()
+    private void ResetExpMatrix()
     {
         for (int i = 0; i < height; i++)
         {
@@ -99,7 +93,7 @@ public class Grid : MonoBehaviour
         }
     }
 
-    public void setWorldPositions()//setting the world positions of cells
+    private void setWorldPositions()//setting the world positions of cells
     {
         for (int i = 0; i < height; i++)
         {
@@ -112,7 +106,7 @@ public class Grid : MonoBehaviour
         }
     }
 
-    public void InstantiateCells()
+    private void InstantiateCells()
     {
         for (int i = 0; i < height; i++)
         {
@@ -164,7 +158,7 @@ public class Grid : MonoBehaviour
         CheckForMatches();
     }
 
-    public void CheckAndStop()
+    private void CheckAndStop()
     {
         if (ShouldStop())
         {
@@ -178,7 +172,7 @@ public class Grid : MonoBehaviour
         }
     }
 
-    public void CheckForMatches()//checks all columns and rows for possible matches and marks them on a matrix
+    private void CheckForMatches()//checks all columns and rows for possible matches and marks them on a matrix
     {
         isCheckingForMatchesRecursively = true;
         
@@ -210,7 +204,7 @@ public class Grid : MonoBehaviour
         CheckForMatches();
     }
 
-    public bool CheckRowForMatches(int rowIndex)//call for all columns each time
+    private bool CheckRowForMatches(int rowIndex)//call for all columns each time
     {
         bool foundAMatch = false;
         int consecutiveCount = 0;
@@ -265,7 +259,7 @@ public class Grid : MonoBehaviour
         return foundAMatch;
     }
 
-    public bool CheckColumnForMatches(int columnIndex)//call for all columns after each swap
+    private bool CheckColumnForMatches(int columnIndex)//call for all columns after each swap
     {
         bool foundAMatch = false;
         int consecutiveCount = 0;
@@ -320,7 +314,7 @@ public class Grid : MonoBehaviour
         return foundAMatch;
     }
 
-    public void PopCubesOnMatrix()
+    private void PopCubesOnMatrix()
     {
         for (int i = 0; i < height; i++)
         {
@@ -340,7 +334,7 @@ public class Grid : MonoBehaviour
         ResetExpMatrix();
     }
 
-    public void MarkRowCubes(int rowIndex, int startColumnIndex, int size)
+    private void MarkRowCubes(int rowIndex, int startColumnIndex, int size)
     {
         for (int i = 0; i < size; i++)
         {
@@ -348,7 +342,7 @@ public class Grid : MonoBehaviour
         }
     }
 
-    public void MarkColumnCubes(int columnIndex, int startRowIndex, int size)
+    private void MarkColumnCubes(int columnIndex, int startRowIndex, int size)
     {
         for (int i = 0; i < size; i++)
         {
@@ -356,7 +350,7 @@ public class Grid : MonoBehaviour
         }
     }
 
-    public void BringDownCubesOnTop()//goes through each column, finds and caches remainibg cubes, moves them to bottom and fills the top with new cubes
+    private void BringDownCubesOnTop()//goes through each column, finds and caches remainibg cubes, moves them to bottom and fills the top with new cubes
     {
         List<int> remainingBoxIndices = new List<int>();
         for (int i = 0; i < width; i++)//for all columns
@@ -388,13 +382,13 @@ public class Grid : MonoBehaviour
         }
     }
 
-    public bool ShouldStop()
+    private bool ShouldStop()
     {
         if (moveCount == 0) return true;
         return false;
     }
 
-    public int GetItemTypeCount(string type)
+    private int GetItemTypeCount(string type)
     {
         int count = 0;
         for (int i = 0; i < height; i++)
@@ -409,7 +403,7 @@ public class Grid : MonoBehaviour
         return count;
     }
 
-    public string GetRandomColor()
+    private string GetRandomColor()
     {
         int rand = Random.Range(0, 4);
         string color = null;
@@ -431,4 +425,8 @@ public class Grid : MonoBehaviour
         return color;
     }
 
+    private void OnDestroy()
+    {
+        LevelManager.setupEvent -= SetupGrid;
+    }
 }

@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -29,7 +28,7 @@ public class DownloadManager : MonoBehaviour
 
     private void Start()
     {
-        SaveToPersistentPath();
+        StartCoroutine(SaveToPersistentPath());
     }
 
     private void Update()//move this code
@@ -82,13 +81,33 @@ public class DownloadManager : MonoBehaviour
         }
     }
 
-    public void SaveToPersistentPath()
+    public IEnumerator SaveToPersistentPath()
     {
+        Debug.Log("Streaming assets path is: " + Application.streamingAssetsPath);
         Debug.Log("Saving first 10 levels to the persistent data path");
-        if (File.Exists(Application.persistentDataPath + "/Levels/RM_A1")) return;//files are already saved to the persistent datapath
+        if (!Directory.Exists(Application.persistentDataPath + "/Levels"))
+        {
+            Directory.CreateDirectory(Application.persistentDataPath + "/Levels");
+        }
+        if (File.Exists(Application.persistentDataPath + "/Levels/RM_A1")) 
+        {
+            yield break;
+        }
+        
         for (int i = 1; i <= 10; i++)
         {
-            FileUtil.CopyFileOrDirectory(Application.dataPath + "/Resources/Levels/RM_A" + i.ToString(), Application.persistentDataPath + "/Levels/RM_A" + i.ToString());
+            //File.Copy(Resources.Load("/Levels/RM_A" + i.ToString()) as File, Application.persistentDataPath + "/Levels/RM_A" + i.ToString());
+            
+            string fileInData = Application.persistentDataPath + "/Levels/RM_A" + i.ToString();
+            string fileInApk = Application.streamingAssetsPath + "/Levels/RM_A" + i.ToString();
+            if (!File.Exists(fileInData))
+            {
+                var request = UnityWebRequest.Get(fileInApk);
+                var download = new DownloadHandlerFile(fileInData);
+                request.downloadHandler = download;
+                yield return request.SendWebRequest();
+            }
         }
+        
     }
 }

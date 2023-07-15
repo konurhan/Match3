@@ -1,8 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Drawing;
 using UnityEngine;
-using UnityEngine.AI;
 
 public class ObjectPooling : MonoBehaviour
 {
@@ -86,19 +83,19 @@ public class ObjectPooling : MonoBehaviour
     public GameObject GetPooledCube(string color)
     {
         GameObject cube = null;
-        /*for (int i = 0; i< pooledCubes[color].Count; i++)
+        for (int i = 0; i< pooledCubes[color].Count; i++)
         {
             if (!pooledCubes[color][i].activeInHierarchy)
             {
                 cube = pooledCubes[color][i];
                 break;
             }
-        }*/
-        if (pooledCubes[color].Count!=0)
+        }
+        /*if (pooledCubes[color].Count!=0)
         {
             cube = pooledCubes[color][0];
             pooledCubes[color].RemoveAt(0);
-        }
+        }*/
         if (cube == null)
         {
             InstantiateAndAddCube(color);
@@ -118,19 +115,19 @@ public class ObjectPooling : MonoBehaviour
     public GameObject GetPooledBrokenCube(string color, Vector3 worldPosition)
     {
         GameObject cube = null;
-        /*for (int i = 0; i < pooledBrokenCubes[color].Count; i++)
+        for (int i = 0; i < pooledBrokenCubes[color].Count; i++)
         {
             if (!pooledBrokenCubes[color][i].activeInHierarchy)
             {
                 cube = pooledBrokenCubes[color][i];
                 break;
             }
-        }*/
-        if (pooledBrokenCubes[color].Count != 0)
+        }
+        /*if (pooledBrokenCubes[color].Count != 0)
         {
             cube = pooledBrokenCubes[color][0];
             pooledBrokenCubes[color].RemoveAt(0);
-        }
+        }*/
         if (cube == null)
         {
             InstantiateAndAddCube(color);
